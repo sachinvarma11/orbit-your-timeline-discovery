@@ -13,6 +13,7 @@ import { useDebounce } from "@/hooks/use-debounce"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { YearPicker } from "@/components/year-picker"
 import { TimeTravelEffects } from "@/components/time-travel-effects"
+import { TimelineEventDetails } from "@/components/timeline-event-details"
 
 // Timeline event type
 type TimelineEvent = {
@@ -56,6 +57,10 @@ export default function TimelinePage() {
 
   // Dialog state
   const [birthYearDialogOpen, setBirthYearDialogOpen] = useState(false)
+
+  // Event details state
+  const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null)
+  const [showEventDetails, setShowEventDetails] = useState(false)
 
   // Auto-scroll to the bottom of the answer as it streams in
   useEffect(() => {
@@ -327,13 +332,21 @@ export default function TimelinePage() {
     return `${baseSpacing * zoomLevel}rem`
   }
 
-  const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null)
-  const [showEventDetails, setShowEventDetails] = useState(false)
-
   const handleCardClick = (event: TimelineEvent) => {
     setSelectedEvent(event)
     setShowEventDetails(true)
     setCurrentYear(event.year)
+  }
+
+  // Handle AI query from event details
+  const handleAskAI = (question: string) => {
+    setAiQuery(question)
+    setShowAiPanel(true)
+
+    // Use setTimeout to ensure the state is updated before submitting
+    setTimeout(() => {
+      handleAiQuery(new Event("submit") as any)
+    }, 100)
   }
 
   // Add a new ref for scroll animation
@@ -466,7 +479,7 @@ export default function TimelinePage() {
               <Input
                 ref={searchInputRef}
                 type="text"
-                placeholder="Search for any person (e.g., Albert Einstein)"
+                placeholder="Search for any person (e.g., Elon Musk)"
                 className="pl-10 pr-4 py-6 rounded-lg border-teal-200 focus:border-teal-500 focus:ring-2 focus:ring-teal-200 w-full"
                 value={searchQuery}
                 onChange={(e) => {
@@ -813,57 +826,15 @@ export default function TimelinePage() {
           </div>
         )}
 
-        {/* Event Details Dialog */}
-        <Dialog open={showEventDetails} onOpenChange={setShowEventDetails}>
-          <DialogContent className="sm:max-w-md">
-            <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
-                <Calendar className="text-teal-500" size={18} />
-                <span>{selectedEvent?.year}</span>
-                {birthYear && selectedEvent && selectedEvent.year >= birthYear && (
-                  <span className="ml-2 text-xs px-2 py-0.5 bg-purple-100 text-purple-800 rounded-full">
-                    You:{" "}
-                    {selectedEvent.year - birthYear > 0
-                      ? `${selectedEvent.year - birthYear} years old`
-                      : "Not born yet"}
-                  </span>
-                )}
-              </DialogTitle>
-            </DialogHeader>
-            <div className="py-4">
-              <div className="space-y-4">
-                <div className="bg-gray-50 p-4 rounded-md">
-                  <h3 className="font-medium text-gray-900 mb-2">Event Details</h3>
-                  <p className="text-gray-700">{selectedEvent?.event}</p>
-                </div>
-
-                <div className="bg-gray-50 p-4 rounded-md">
-                  <h3 className="font-medium text-gray-900 mb-2">Historical Context</h3>
-                  <p className="text-gray-700">
-                    At age {selectedEvent?.age}, {personName} experienced this milestone in their life journey.
-                    {selectedEvent && birthYear && selectedEvent.year >= birthYear
-                      ? ` This happened when you were ${selectedEvent.year - birthYear > 0 ? `${selectedEvent.year - birthYear} years old` : "not yet born"}.`
-                      : ""}
-                  </p>
-                </div>
-
-                <Button
-                  onClick={() => {
-                    setAiQuery(
-                      `Tell me more about ${personName} in ${selectedEvent?.year} when they were ${selectedEvent?.age} years old.`,
-                    )
-                    setShowEventDetails(false)
-                    setShowAiPanel(true)
-                    handleAiQuery(new Event("submit") as any)
-                  }}
-                  className="w-full bg-purple-600 hover:bg-purple-700"
-                >
-                  Ask AI About This Event
-                </Button>
-              </div>
-            </div>
-          </DialogContent>
-        </Dialog>
+        {/* Use the TimelineEventDetails component */}
+        <TimelineEventDetails
+          event={selectedEvent}
+          personName={personName}
+          birthYear={birthYear}
+          isOpen={showEventDetails}
+          onClose={() => setShowEventDetails(false)}
+          onAskAI={handleAskAI}
+        />
       </div>
     </div>
   )

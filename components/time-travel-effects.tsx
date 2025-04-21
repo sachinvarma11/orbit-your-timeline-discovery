@@ -1,7 +1,6 @@
 "use client"
 
 import { useEffect, useState, useRef } from "react"
-import { motion, AnimatePresence } from "framer-motion"
 
 interface TimeTravelEffectsProps {
   timelineData: Array<{ year: number; age: number; event: string }>
@@ -11,7 +10,6 @@ interface TimeTravelEffectsProps {
 export function TimeTravelEffects({ timelineData, currentYear }: TimeTravelEffectsProps) {
   const [showPortal, setShowPortal] = useState(false)
   const [visibleArtifacts, setVisibleArtifacts] = useState<number[]>([])
-  const [yearIndicator, setYearIndicator] = useState<number | null>(null)
   const lastScrollTop = useRef(0)
   const scrollDirection = useRef<"up" | "down">("down")
 
@@ -54,30 +52,6 @@ export function TimeTravelEffects({ timelineData, currentYear }: TimeTravelEffec
         }
       }
       setVisibleArtifacts(newVisibleArtifacts)
-
-      // Update year indicator based on visible timeline events
-      if (timelineData.length > 0) {
-        const timelineElements = document.querySelectorAll(".timeline-event")
-        let closestElement = null
-        let closestDistance = Number.POSITIVE_INFINITY
-
-        timelineElements.forEach((element) => {
-          const rect = element.getBoundingClientRect()
-          const distance = Math.abs(rect.top + rect.height / 2 - window.innerHeight / 2)
-
-          if (distance < closestDistance) {
-            closestDistance = distance
-            closestElement = element
-          }
-        })
-
-        if (closestElement) {
-          const index = Array.from(timelineElements).indexOf(closestElement)
-          if (index >= 0 && index < timelineData.length) {
-            setYearIndicator(timelineData[index].year)
-          }
-        }
-      }
     }
 
     window.addEventListener("scroll", handleScroll)
@@ -105,25 +79,6 @@ export function TimeTravelEffects({ timelineData, currentYear }: TimeTravelEffec
           {artifact.icon}
         </div>
       ))}
-
-      {/* Clock animation removed */}
-      <></>
-
-      {/* Year indicator */}
-      <AnimatePresence>
-        {yearIndicator && (
-          <motion.div
-            key={yearIndicator}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            exit={{ opacity: 0, scale: 0.8 }}
-            transition={{ duration: 0.5 }}
-            className="timeline-year-indicator"
-          >
-            {yearIndicator}
-          </motion.div>
-        )}
-      </AnimatePresence>
     </>
   )
 }
