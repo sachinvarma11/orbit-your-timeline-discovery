@@ -1,30 +1,38 @@
-# Dynamic timeline app
+## Orbit - Age-Based Timeline Explorer - orbit your time
 
-*Automatically synced with your [v0.dev](https://v0.dev) deployments*
+## website
+https://orbit-your-timeline.vercel.app
 
-[![Deployed on Vercel](https://img.shields.io/badge/Deployed%20on-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com/sacs-projects-1d4e7875/v0-dynamic-timeline-app)
-[![Built with v0](https://img.shields.io/badge/Built%20with-v0.dev-black?style=for-the-badge)](https://v0.dev/chat/projects/iL5esP3HqYt)
 
 ## Overview
 
-This repository will stay in sync with your deployed chats on [v0.dev](https://v0.dev).
-Any changes you make to your deployed app will be automatically pushed to this repository from [v0.dev](https://v0.dev).
+Orbit is an interactive web application that generates age-based timelines for notable individuals throughout history. It allows users to explore the life events of historical figures, celebrities, and leaders while comparing these events to their own lifetime.
 
-## Deployment
+## Features
 
-Your project is live at:
+### Core Functionality
+Interactive Timelines: Visualize key events in a person's life chronologically
+Birth Year Comparison: Add your birth year to see how your life overlaps with historical figures
+AI-Powered Search: Find any notable person with intelligent search suggestions
+Time Travel Effects: Engaging visual effects while scrolling through the timeline
+Responsive Design: Works seamlessly on mobile, tablet, and desktop devices
 
-**[https://vercel.com/sacs-projects-1d4e7875/v0-dynamic-timeline-app](https://vercel.com/sacs-projects-1d4e7875/v0-dynamic-timeline-app)**
+### Interactive Elements
+Event Details: Click on any timeline event to view more information
+AI Assistant: Ask questions about the person and receive AI-generated answers
+Year Picker: Select your birth year from an intuitive decade-based interface
+Visual Indicators: Color-coded events show which occurred during your lifetime
 
-## Build your app
+### Technology Stack
 
-Continue building your app on:
+Frontend: Next.js, React, TypeScript
+Styling: Tailwind CSS, Framer Motion for animations
+AI Integration: OpenAI API for timeline generation and Q&A
+UI Components: shadcn/ui component library
 
-**[https://v0.dev/chat/projects/iL5esP3HqYt](https://v0.dev/chat/projects/iL5esP3HqYt)**
-
-## How It Works
-
-1. Create and modify your project using [v0.dev](https://v0.dev)
-2. Deploy your chats from the v0 interface
-3. Changes are automatically pushed to this repository
-4. Vercel deploys the latest version from this repository
+### How to Use
+Search for a Person: Enter the name of any historical figure, celebrity, or notable person in the search bar
+Add Your Birth Year: Click the "Add Your Birth Year" button to see how your life overlaps with the person's timeline
+Explore the Timeline: Scroll through the chronological events in the person's life
+View Event Details: Click on any event card to see more information
+Ask the AI Assistant: Use the AI assistant to ask specific questions about the person
