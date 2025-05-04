@@ -14,6 +14,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { YearPicker } from "@/components/year-picker"
 import { TimeTravelEffects } from "@/components/time-travel-effects"
 import { TimelineEventDetails } from "@/components/timeline-event-details"
+import { useAuth } from "@/contexts/auth-context"
+import { saveSearchHistory, updateBirthYear, saveTimelineData, getTimelineData } from "@/services/user-service"
+import { UserMenu } from "@/components/user-menu"
 
 // Timeline event type
 type TimelineEvent = {
@@ -61,6 +64,9 @@ export default function TimelinePage() {
   // Event details state
   const [selectedEvent, setSelectedEvent] = useState<TimelineEvent | null>(null)
   const [showEventDetails, setShowEventDetails] = useState(false)
+
+  // Add this with the other useState declarations
+  const { user } = useAuth()
 
   // Auto-scroll to the bottom of the answer as it streams in
   useEffect(() => {
@@ -201,42 +207,71 @@ export default function TimelinePage() {
     setDisableSuggestions(true) // Disable suggestions during search
 
     try {
-      const response = await fetch("/api/timeline", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ name: nameToSearch }),
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || "Failed to fetch timeline data")
+      // Check if we have cached timeline data for this person
+      let timelineEvents = null
+      if (user) {
+        timelineEvents = await getTimelineData(user.uid, nameToSearch)
       }
 
-      const data = await response.json()
+      // If no cached data, fetch from API
+      if (!timelineEvents) {
+        const response = await fetch("/api/timeline", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ name: nameToSearch }),
+        })
 
-      if (data.error) {
-        setError(data.error)
-        if (data.suggestion) {
-          setSuggestion(data.suggestion)
+        if (!response.ok) {
+          const errorData = await response.json()
+          throw new Error(errorData.error || "Failed to fetch timeline data")
         }
-        setNotFound(true)
-        setDisableSuggestions(false) // Re-enable suggestions if no timeline is found
-      } else if (data.events && data.events.length > 0) {
-        setTimelineData(data.events)
+
+        const data = await response.json()
+
+        if (data.error) {
+          setError(data.error)
+          if (data.suggestion) {
+            setSuggestion(data.suggestion)
+          }
+          setNotFound(true)
+          setDisableSuggestions(false) // Re-enable suggestions if no timeline is found
+        } else if (data.events && data.events.length > 0) {
+          setTimelineData(data.events)
+          setPersonName(nameToSearch)
+
+          // Save timeline data to Firestore if user is logged in
+          if (user) {
+            saveTimelineData(user.uid, nameToSearch, data.events)
+            saveSearchHistory(user.uid, nameToSearch)
+          }
+
+          // If birth year is set, generate personal events
+          if (birthYear) {
+            generatePersonalEvents()
+          }
+
+          // Keep suggestions disabled when timeline is shown
+          setDisableSuggestions(true)
+        } else {
+          setNotFound(true)
+          setDisableSuggestions(false) // Re-enable suggestions if no timeline is found
+        }
+      } else {
+        // Use cached timeline data
+        setTimelineData(timelineEvents)
         setPersonName(nameToSearch)
+
+        // Save search history
+        if (user) {
+          saveSearchHistory(user.uid, nameToSearch)
+        }
 
         // If birth year is set, generate personal events
         if (birthYear) {
           generatePersonalEvents()
         }
-
-        // Keep suggestions disabled when timeline is shown
-        setDisableSuggestions(true)
-      } else {
-        setNotFound(true)
-        setDisableSuggestions(false) // Re-enable suggestions if no timeline is found
       }
     } catch (err) {
       console.error("Error fetching timeline:", err)
@@ -306,11 +341,20 @@ export default function TimelinePage() {
     }
   }
 
-  const handleSetBirthYear = (year: number | null) => {
+  const handleSetBirthYear = async (year: number | null) => {
     setBirthYear(year)
     if (year !== null) {
       // Close the dialog when a year is selected
       setBirthYearDialogOpen(false)
+
+      // Save birth year to user profile if logged in
+      if (user) {
+        try {
+          await updateBirthYear(user.uid, year)
+        } catch (error) {
+          console.error("Error updating birth year:", error)
+        }
+      }
     }
     if (year && timelineData.length > 0) {
       generatePersonalEvents()
@@ -427,6 +471,10 @@ export default function TimelinePage() {
             <p className="text-gray-600 text-sm mt-1">
               Add your birth year to discover timeline between your life and historical figures
             </p>
+          </div>
+
+          <div className="flex justify-center mb-4">
+            <UserMenu />
           </div>
 
           <Alert className="bg-blue-50 border-blue-200 mb-6 max-w-xl mx-auto">

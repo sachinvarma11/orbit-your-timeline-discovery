@@ -61,6 +61,7 @@
     "@emotion/is-prop-valid": "latest",
     "ai": "latest",
     "@ai-sdk/openai": "latest",
+    "firebase": "latest",
     "framer-motion": "latest"
   },
   "devDependencies": {
