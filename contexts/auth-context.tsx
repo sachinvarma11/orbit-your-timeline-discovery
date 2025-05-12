@@ -10,8 +10,9 @@ import {
   signInWithEmailAndPassword,
   signOut,
   GoogleAuthProvider,
-  signInWithPopup,
   sendPasswordResetEmail,
+  signInWithRedirect,
+  getRedirectResult,
 } from "firebase/auth"
 import { auth } from "@/lib/firebase"
 
@@ -34,6 +35,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Check for redirect result on initial load
+  useEffect(() => {
+    const checkRedirectResult = async () => {
+      try {
+        const result = await getRedirectResult(auth)
+        if (result?.user) {
+          // User successfully signed in via redirect
+          setUser(result.user)
+        }
+      } catch (err: any) {
+        console.error("Redirect result error:", err)
+        if (err.code === "auth/unauthorized-domain") {
+          setError(
+            `Your domain "${window.location.hostname}" is not authorized for Google Sign-In. Please ensure it's added to your Firebase Console authorized domains list.`,
+          )
+        } else {
+          setError(err.message || "Failed to complete sign-in")
+        }
+      }
+    }
+
+    checkRedirectResult()
+  }, [])
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       setUser(user)
@@ -49,13 +74,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setError(null)
     } catch (err: any) {
       console.error("Sign up error:", err)
-      if (err.code === "auth/unauthorized-domain") {
-        setError(
-          "Authentication domain not authorized. Please add this domain to your Firebase authorized domains list.",
-        )
-      } else {
-        setError(err.message || "Failed to create account")
-      }
+      setError(err.message || "Failed to create account")
       throw err
     }
   }
@@ -66,27 +85,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setError(null)
     } catch (err: any) {
       console.error("Sign in error:", err)
-      if (err.code === "auth/unauthorized-domain") {
-        setError(
-          "Authentication domain not authorized. Please add this domain to your Firebase authorized domains list.",
-        )
-      } else {
-        setError(err.message || "Failed to sign in")
-      }
+      setError(err.message || "Failed to sign in")
       throw err
     }
   }
 
   const signInWithGoogle = async () => {
     try {
-      const provider = new GoogleAuthProvider()
-      await signInWithPopup(auth, provider)
       setError(null)
+      const provider = new GoogleAuthProvider()
+
+      // Add scopes for email
+      provider.addScope("https://www.googleapis.com/auth/userinfo.email")
+
+      // Force re-prompt to prevent cached credentials issues
+      provider.setCustomParameters({
+        prompt: "select_account",
+      })
+
+      // Try redirect-based auth which has better compatibility across browsers
+      await signInWithRedirect(auth, provider)
+
+      // Note: We don't need to handle the result here as it will be caught by the useEffect above
     } catch (err: any) {
       console.error("Google sign in error:", err)
+
       if (err.code === "auth/unauthorized-domain") {
+        const currentDomain = window.location.hostname
         setError(
-          "Authentication domain not authorized. Please add this domain to your Firebase authorized domains list.",
+          `Your domain "${currentDomain}" is not authorized for Google Sign-In. Please ensure it's added to your Firebase Console authorized domains list.`,
         )
       } else {
         setError(err.message || "Failed to sign in with Google")

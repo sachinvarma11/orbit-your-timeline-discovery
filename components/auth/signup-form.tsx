@@ -8,9 +8,8 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { Mail, Lock, AlertCircle, UserPlus, Info } from "lucide-react"
+import { Mail, Lock, AlertCircle, UserPlus } from "lucide-react"
 import { saveUserProfile } from "@/services/user-service"
-import { isPreviewEnvironment, getCurrentHostname } from "@/utils/environment"
 
 export function SignupForm() {
   const [email, setEmail] = useState("")
@@ -19,10 +18,6 @@ export function SignupForm() {
   const [localError, setLocalError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const { signUp, signInWithGoogle, error: authError, clearError, user } = useAuth()
-
-  // Check if we're in a preview environment
-  const isPreview = isPreviewEnvironment()
-  const currentHostname = getCurrentHostname()
 
   // Clear auth errors when component unmounts
   useEffect(() => {
@@ -100,16 +95,6 @@ export function SignupForm() {
         <CardDescription className="text-center">Sign up to save your timelines and preferences</CardDescription>
       </CardHeader>
       <CardContent>
-        {isPreview && (
-          <Alert className="mb-4 bg-yellow-50 border-yellow-200">
-            <Info className="h-4 w-4 text-yellow-500" />
-            <AlertDescription className="text-yellow-700">
-              You are viewing this page on <strong>{currentHostname}</strong>, which may not be authorized for Google
-              Sign-In. Please use email/password or email link authentication instead.
-            </AlertDescription>
-          </Alert>
-        )}
-
         {displayError && (
           <Alert className="mb-4 bg-red-50 border-red-200">
             <AlertCircle className="h-4 w-4 text-red-500" />
@@ -178,14 +163,7 @@ export function SignupForm() {
             <span className="px-2 bg-white text-gray-500">Or continue with</span>
           </div>
         </div>
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full"
-          onClick={handleGoogleSignIn}
-          disabled={isLoading || isPreview}
-          title={isPreview ? "Google Sign-In is disabled in preview environments" : ""}
-        >
+        <Button type="button" variant="outline" className="w-full" onClick={handleGoogleSignIn} disabled={isLoading}>
           <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
             <path
               d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
@@ -204,13 +182,8 @@ export function SignupForm() {
               fill="#EA4335"
             />
           </svg>
-          {isPreview ? "Google Sign-In Unavailable" : "Sign up with Google"}
+          Sign up with Google
         </Button>
-        {isPreview && (
-          <p className="text-xs text-center mt-2 text-gray-500">
-            Google Sign-In is disabled in preview environments due to domain restrictions.
-          </p>
-        )}
       </CardContent>
       <CardFooter className="flex justify-center">
         <p className="text-sm text-gray-500">

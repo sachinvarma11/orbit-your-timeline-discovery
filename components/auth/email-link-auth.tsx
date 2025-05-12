@@ -10,16 +10,12 @@ import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { Mail, AlertCircle, CheckCircle } from "lucide-react"
-import { isPreviewEnvironment } from "@/utils/environment"
 
 export function EmailLinkAuth() {
   const [email, setEmail] = useState("")
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState("")
   const [success, setSuccess] = useState(false)
-
-  // Check if we're in a preview environment
-  const isPreview = isPreviewEnvironment()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -56,11 +52,9 @@ export function EmailLinkAuth() {
   }
 
   return (
-    <Card className={`w-full max-w-md mx-auto ${isPreview ? "border-2 border-yellow-300" : "mt-8"}`}>
+    <Card className="w-full max-w-md mx-auto">
       <CardHeader>
-        <CardTitle className="text-xl text-center">
-          {isPreview ? "Recommended: Sign in with Email Link" : "Sign in with Email Link"}
-        </CardTitle>
+        <CardTitle className="text-xl text-center">Sign in with Email Link</CardTitle>
       </CardHeader>
       <CardContent>
         {error && (
@@ -92,11 +86,7 @@ export function EmailLinkAuth() {
                 />
               </div>
             </div>
-            <Button
-              type="submit"
-              className={`w-full ${isPreview ? "bg-yellow-600 hover:bg-yellow-700" : "bg-teal-600 hover:bg-teal-700"}`}
-              disabled={isLoading}
-            >
+            <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700" disabled={isLoading}>
               {isLoading ? (
                 <div className="flex items-center">
                   <div className="animate-spin mr-2 h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
@@ -110,9 +100,7 @@ export function EmailLinkAuth() {
               )}
             </Button>
             <p className="text-xs text-gray-500 text-center mt-2">
-              {isPreview
-                ? "This method works in all environments, including preview deployments."
-                : "We'll email you a magic link that will sign you in instantly."}
+              We'll email you a magic link that will sign you in instantly.
             </p>
           </form>
         )}
